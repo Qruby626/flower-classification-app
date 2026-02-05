@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flower Classifier AI</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --white: #ffffff;
+            --success: #48bb78;
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .background-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+        }
+
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            top: -100px;
+            left: -100px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            bottom: -50px;
+            right: -50px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .shape-3 {
+            width: 250px;
+            height: 250px;
+            top: 40%;
+            left: 60%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            color: var(--white);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .preview-container {
+            margin-top: 1.5rem;
+            display: none;
+            position: relative;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            object-fit: cover;
+        }
+
+        .btn-predict {
+            margin-top: 2rem;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 35px;
+            font-size: 1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: none;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Result Styles */
+        .result-card {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.8rem;
+            color: var(--text-color);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .flower-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4e4376;
+            text-transform: capitalize;
+            margin: 0.5rem 0 1rem;
+        }
+
+        .confidence-container {
+            margin-top: 1rem;
+            text-align: left;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .progress-bar-bg {
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-gradient);
+            width: 0%;
+            /* Animated via JS */
+            border-radius: 6px;
+            transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Loading Spinner */
+        .loader-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: white;
+            font-weight: 500;
+            letter-spacing: 1px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        .upload-another {
+            margin-top: 1.5rem;
+            background: transparent;
+            border: 2px solid #4e4376;
+            color: #4e4376;
+            padding: 10px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .upload-another:hover {
+            background: #4e4376;
+            color: white;
+        }
+
+        /* Error Message */
+        .error-msg {
+            margin-top: 1rem;
+            background: rgba(229, 62, 62, 0.25);
+            border: 1px solid rgba(229, 62, 62, 0.4);
+            color: #ffeaea;
+            padding: 1rem;
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="background-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+
+    <div class="glass-container">
+        <h1>🌸 Flower AI</h1>
+        <p class="subtitle">Identify flowers instantly using Deep Learning</p>
+
+        <!-- Supported Classes Disclaimer -->
+        <p
+            style="font-size: 0.8rem; color: var(--white); background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 20px; display: inline-block; margin-bottom: 1.5rem;">
+            <i class="fas fa-info-circle"></i> Supports: Daisy, Dandelion, Rose, Sunflower, Tulip
+        </p>
+
+        <!-- Loading Overlay -->
+        <div class="loader-overlay" id="loader">
+            <div class="spinner"></div>
+            <div class="loading-text">Anaylzing Image...</div>
+        </div>
+
+        <form action="/predict" method="post" enctype="multipart/form-data" id="uploadForm">
+
+            <div class="upload-zone" id="dropZone">
+                <div id="uploadContent">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <h3>Drag & Drop or Click to Upload</h3>
+                    <p style="font-size: 0.8rem; opacity: 0.9; margin-top: 0.5rem;">Supported: JPG, JPEG, PNG</p>
+                </div>
+
+                <input type="file" name="file" id="fileInput" accept="image/*" required>
+
+                <div class="preview-container" id="previewContainer">
+                    <img src="#" alt="Preview" class="preview-img" id="previewImg">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-predict" id="predictBtn">
+                Identify Flower <i class="fas fa-magic" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+
+        {% if prediction %}
+        <div class="result-card" id="resultCard">
+            <div
+                style="font-size: 0.85rem; color: #718096; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;">
+                Prediction Result</div>
+            <div class="flower-title">{{ prediction }}</div>
+
+            <div class="confidence-container">
+                <div class="confidence-label">
+                    <span>Confidence Score</span>
+                    <span>{{ confidence }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div
+                style="margin-top: 1.2rem; padding: 0.8rem; background: rgba(255, 193, 7, 0.1); border-left: 3px solid #ffc107; border-radius: 6px; text-align: left;">
+                <div style="font-size: 0.75rem; color: #856404; font-weight: 600; margin-bottom: 0.3rem;">
+                    <i class="fas fa-info-circle" style="margin-right: 5px;"></i> Note
+                </div>
+                <div style="font-size: 0.75rem; color: #856404; line-height: 1.4;">
+                    This model is trained only on 5 flower types. Other flowers (e.g., Lily, Orchid, Lotus) may be
+                    misclassified.
+                </div>
+            </div>
+
+            <a href="/" style="text-decoration: none;">
+                <button class="upload-another" type="button">Analyze Another Image</button>
+            </a>
+        </div>
+
+        {% endif %}
+
+        {% if image_url %}
+        <script>
+            // Show the uploaded image even if there is an error (e.g. Not a Flower)
+            var imgUrl = "{{ image_url }}".replace(/\\/g, "/");
+            document.getElementById('previewImg').src = imgUrl;
+            document.getElementById('previewContainer').style.display = 'block';
+            document.getElementById('uploadContent').style.display = 'none';
+            document.getElementById('dropZone').style.borderColor = 'transparent';
+            document.getElementById('dropZone').style.background = 'transparent';
+        </script>
+        {% endif %}
+
+        {% if prediction %}
+        <script>
+            // Animate progress bar only if we have a valid prediction
+            setTimeout(function () {
+                document.getElementById('progressBar').style.width = "{{ confidence }}%";
+            }, 300);
+        </script>
+        {% endif %}
+
+        {% if error %}
+        <div class="error-msg">
+            <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> {{ error }}
+        </div>
+        <a href="/" style="text-decoration: none;">
+            <button class="upload-another" type="button" style="margin-top: 1rem;">
+                <i class="fas fa-redo" style="margin-right: 5px;"></i> Try Another Image
+            </button>
+        </a>
+        {% endif %}
+
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewImg = document.getElementById('previewImg');
+        const previewContainer = document.getElementById('previewContainer');
+        const uploadContent = document.getElementById('uploadContent');
+        const predictBtn = document.getElementById('predictBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const loader = document.getElementById('loader');
+        const resultCard = document.getElementById('resultCard');
+
+        // Only add event listeners if we are not in "result mode" (or just add them anyway)
+        // Trigger file input on click
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and Drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFiles(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                handleFiles(fileInput.files[0]);
+            }
+        });
+
+        function handleFiles(file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert("Please upload an image file.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadContent.style.display = 'none';
+                predictBtn.style.display = 'inline-block'; // Show button
+
+                // Reset dropzone style just in case
+                dropZone.style.background = 'rgba(255, 255, 255, 0.1)';
+                dropZone.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+
+                // Hide result card if exists (user wants to try new image)
+                if (resultCard) resultCard.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Form Submit
+        uploadForm.addEventListener('submit', () => {
+            if (fileInput.files.length > 0 || previewImg.src !== "#") {
+                loader.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+
+</html>

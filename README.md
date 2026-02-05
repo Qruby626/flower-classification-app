@@ -58,4 +58,6 @@ Open your browser and verify the local url, usually: `http://127.0.0.1:5000/`
 - **GitHub Repository:** [Optional - Insert Link Here]
 
 ## Author
-[Your Name/NIM]
+Name: Thifal Hasna Aulia Habibah
+NIM: 301220020
+
